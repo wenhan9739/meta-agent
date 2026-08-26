@@ -22,7 +22,7 @@ RUN Rscript -e ' \
   cran <- "https://cloud.r-project.org"; \
   install.packages(c("metafor","meta","netmeta","forestplot","ggplot2", \
                      "dplyr","tidyr","readr","readxl","jsonlite","yaml", \
-                     "rmarkdown","knitr"), repos=cran, Ncpus=4); \
+                     "rmarkdown","knitr"), repos=cran, Ncpus=2); \
   ' && rm -rf /tmp/downloaded_packages /tmp/Rtmp*
 
 # ---------- dsh CLI ----------
