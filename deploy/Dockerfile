@@ -16,13 +16,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pandoc \
     && rm -rf /var/lib/apt/lists/*
 
-# ---------- R 包（meta 分析全家桶，预装保证开箱即用） ----------
+# ---------- R 包（meta 分析全家桶） ----------
+# 方案: Posit Package Manager (PPM) bookworm 预编译二进制, 零源码编译。
+# 4G 内存云主机跑 install.packages 源码编译会 OOM 卡死; 二进制解压即用,
+# 内存占用极小, 速度比编译快 10x 以上。repo 指向 __linux__/bookworm 二进制区。
+# 预估占用: 全部 R 包含依赖约 1.5GB (预算上限 5GB, 满足)。
 RUN Rscript -e ' \
   options(warn=1); \
-  cran <- "https://cloud.r-project.org"; \
-  install.packages(c("metafor","meta","netmeta","forestplot","ggplot2", \
-                     "dplyr","tidyr","readr","readxl","jsonlite","yaml", \
-                     "rmarkdown","knitr"), repos=cran, Ncpus=2); \
+  options(repos = c(CRAN = "https://packagemanager.posit.co/cran/__linux__/bookworm/latest")); \
+  install.packages(c("metafor","meta","netmeta","mada","metasens","mvmeta", \
+                     "clubSandwich","glmmTMB","esc","compute.es", \
+                     "forestplot","ggplot2","dplyr","tidyr","readr","readxl", \
+                     "jsonlite","yaml","rmarkdown","knitr","kableExtra", \
+                     "flextable","officer"), \
+                   type = "binary"); \
   ' && rm -rf /tmp/downloaded_packages /tmp/Rtmp*
 
 # ---------- dsh CLI ----------
