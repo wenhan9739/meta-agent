@@ -15,7 +15,13 @@ if [ -z "$DEEPSEEK_API_KEY" ]; then
 fi
 
 # dsh web 后台启动
-dsh web --no-open --port 3080 &
+# TRUSTED_HOST: 允许外部网关 Host 通过 /api trust fence (如 magpieagent.online)
+# 不加则只有 localhost 能调 API (经网关远程访问会全 403)
+TRUSTED_ARGS=""
+for h in ${TRUSTED_HOST:-}; do
+  TRUSTED_ARGS="$TRUSTED_ARGS --trusted-host $h"
+done
+dsh web --no-open --port 3080 $TRUSTED_ARGS &
 DSH_PID=$!
 
 # 等待就绪

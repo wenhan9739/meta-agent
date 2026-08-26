@@ -24,6 +24,7 @@ services:
     environment:
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}   # 服务端统一计费 Key
       DSH_USER: alice
+      TRUSTED_HOST: ${TRUSTED_HOST:-}         # 例: magpieagent.online (dsh /api trust fence 放行)
     volumes:
       - agent_alice_home:/home/metauser/.dsh        # 会话/设置持久化
       - agent_alice_work:/home/metauser/agent/projects  # 项目产出持久化
