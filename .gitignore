@@ -1,0 +1,24 @@
+# 本地数据与密钥 — 绝不入库
+.env
+*.env
+!.env.example
+.credentials.yaml
+**/.credentials.yaml
+
+# 用户项目数据（含未发表研究数据，隐私敏感）
+projects/*
+!projects/.gitkeep
+
+# dsh 运行时产物
+.dsh/profiles/
+.dsh/storages/
+
+# 杂项
+manuscript.docx
+deepseek-harness.del/
+.workbuddy/
+*.log
+__pycache__/
+.Rhistory
+.RData
+*.Rproj

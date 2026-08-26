@@ -1,0 +1,16 @@
+column,definition,unit,allowed_values,extraction_rule
+study_id,研究唯一标识,,FirstAuthorYear,"如 Wang2023; 同一作者多年份加 a/b 后缀"
+pmid,PubMed ID,,数字或空,无PMID留空
+doi,数字对象标识符,,字符串,统一小写; 无则空
+study_design,研究设计,,"RCT / cohort / case-control / cross-sectional / diagnostic",
+sample_size_total,总样本量,人,正整数,
+n_exposed,暴露/干预组人数,人,正整数,
+n_control,对照组人数,人,正整数,
+event_e,暴露组事件数,人,非负整数,<n_exposed
+event_c,对照组事件数,人,非负整数,<n_control
+mean_e / sd_e,暴露组均值与标准差,按结局单位,数值,SD必须>0; 只有SE时 SD=SE*sqrt(n)
+hr / hr_lower / hr_upper,已报告风险比及95%CI,,正数,记录调整后的值(adjusted); 注明调整变量于notes
+效应量优先级,,,"1.已报告调整HR/OR 2.2x2表自算OR 3.连续自算SMD",优先级从高到低; 换算过程记notes
+缺失数据处理,,,"SD缺失: 由CI/p值换算; 完全缺失: 留空",换算公式: CI宽度→SE = (upper-lower)/3.92; SD=SE*sqrt(n)
+rob_total,偏倚风险总分,,工具特定,低/中/高 或 0-9星
+source_location,数据出处,,,"如 Table 2 p.5 / Figure 3(数据由WebPlotDigitizer提取)"

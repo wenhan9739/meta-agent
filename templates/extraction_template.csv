@@ -1,0 +1,6 @@
+study_id,pmid,doi,first_author,year,country,study_design,sample_size_total,n_exposed,n_control,age_mean_exposed,age_mean_control,female_pct,exposure_definition,dose_level,duration,assessment_method,outcome_primary,event_e,n_e,event_c,n_c,mean_e,sd_e,mean_c,sd_c,hr,hr_lower,hr_upper,or_reported,ci_reported,p_value,rob_tool,rob_total,rob_selection,rob_comparison,rob_outcome,funding,conflicts_of_interest,extractor,extraction_date,source_location,notes
+# 填写说明(删除本行后使用):
+# study_id: 建议格式 FirstAuthorYear (如 Wang2023)
+# 事件型结局填 event_e/n_e/event_c/n_c; 连续型填 mean/sd 列; 已报告效应量填 hr/or 列
+# rob_tool: NOS / RoB2 / ROBINS-E / QUADAS-2
+# source_location: 如 "Table 2, p.5" 供双人核对

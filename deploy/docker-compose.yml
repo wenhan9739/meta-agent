@@ -1,0 +1,43 @@
+# Meta-Agent 商业化部署 — 单机起步版
+# 架构: Caddy(TLS+认证+路由) -> [per-user meta-agent 容器]
+# 扩容: 用户数增长后把 per-user 容器换成独立主机/K8s pod, Caddy 加 upstream
+
+services:
+  # ---------- 网关: TLS 终结 + Basic Auth + 按用户路由 ----------
+  gateway:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - agent-alice        # 示例用户; 新用户加新 service + Caddyfile 路由
+    restart: unless-stopped
+
+  # ---------- 每用户一个 agent 实例 (隔离: 文件系统/会话/凭证) ----------
+  agent-alice:
+    build: .
+    image: meta-agent:latest
+    environment:
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}   # 服务端统一计费 Key
+      DSH_USER: alice
+    volumes:
+      - agent_alice_home:/home/metauser/.dsh        # 会话/设置持久化
+      - agent_alice_work:/home/metauser/agent/projects  # 项目产出持久化
+    # 不暴露端口到宿主机! 仅 gateway 内网可达
+    expose:
+      - "8080"
+    restart: unless-stopped
+    mem_limit: 2g
+    cpus: "1.5"
+
+  # agent-bob: 复制上面块, 改名字/volume/Caddyfile 路由
+
+volumes:
+  caddy_data:
+  caddy_config:
+  agent_alice_home:
+  agent_alice_work:

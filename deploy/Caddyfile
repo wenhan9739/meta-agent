@@ -1,0 +1,31 @@
+# Meta-Agent 网关配置
+# 域名: meta.example.com (换成你的域名; Caddy 自动签发 Let's Encrypt 证书)
+#
+# 安全模型:
+#   - Basic Auth 是起步级认证 (内测/小客户量 OK)
+#   - 正式商业化建议换 forward_auth 到独立认证服务 (Authentik/Auth0/自建)
+#   - dsh 的 /api 特权方法 (settings/credentials) 钉死 loopback, 经网关的
+#     用户无法修改服务端配置或读取 API Key — 计费 Key 由环境变量统一注入
+#
+# 路由: 每用户一个子域 (alice.meta.example.com -> agent-alice:8080)
+
+alice.meta.example.com {
+    basic_auth {
+        alice $2a$14$REPLACE_WITH_caddy_hash_PASSWORD
+    }
+    reverse_proxy agent-alice:8080 {
+        # WebSocket 支持 (dsh web 用 WS 推流)
+        flush_interval -1
+    }
+    header {
+        Strict-Transport-Security "max-age=31536000"
+        X-Content-Type-Options nosniff
+    }
+}
+
+# bob.meta.example.com { ... 同结构 -> agent-bob:8080 }
+
+# HTTP->HTTPS 自动重定向 (Caddy 默认行为, 显式声明以便维护)
+http://alice.meta.example.com {
+    redir https://{host}{uri} permanent
+}
