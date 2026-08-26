@@ -10,6 +10,11 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV NODE_ENV=production
 
 # ---------- 系统依赖 ----------
+# apt 源换腾讯云镜像 (deb.debian.org 从腾讯云/国内龟速, 单包可卡数分钟)
+RUN sed -i 's|http://deb.debian.org/debian|http://mirrors.tencentyun.com/debian|g; \
+            s|http://security.debian.org/debian-security|http://mirrors.tencentyun.com/debian-security|g' \
+            /etc/apt/sources.list.d/debian.sources 2>/dev/null || \
+    sed -i 's|deb.debian.org|mirrors.tencentyun.com|g' /etc/apt/sources.list
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl gnupg python3 python3-pip \
     r-base r-base-dev libcurl4-openssl-dev libssl-dev libxml2-dev \
