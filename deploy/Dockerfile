@@ -23,9 +23,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # ---------- R 包（meta 分析全家桶） ----------
 # 方案: Posit Package Manager (PPM) bookworm 预编译二进制, 零源码编译。
-# 4G 内存云主机跑 install.packages 源码编译会 OOM 卡死; 二进制解压即用,
-# 内存占用极小, 速度比编译快 10x 以上。repo 指向 __linux__/bookworm 二进制区。
-# 预估占用: 全部 R 包含依赖约 1.5GB (预算上限 5GB, 满足)。
+# 4G 内存云主机跑 install.packages 源码编译会 OOM 卡死; PPM __linux__ 仓库
+# 提供的 .tar.gz 是预编译二进制 (无 src/, 安装=解压, 不编译, 内存占用极小)。
+# 注意: Linux 上 R 不支持 type="binary"(仅 Win/mac), 默认 type 即可——PPM
+# 仓库里的包本身就是二进制。预估占用: 全部 R 包含依赖约 1.5GB (预算 5GB 内)。
 RUN Rscript -e ' \
   options(warn=1); \
   options(repos = c(CRAN = "https://packagemanager.posit.co/cran/__linux__/bookworm/latest")); \
@@ -33,8 +34,7 @@ RUN Rscript -e ' \
                      "clubSandwich","glmmTMB","esc","compute.es", \
                      "forestplot","ggplot2","dplyr","tidyr","readr","readxl", \
                      "jsonlite","yaml","rmarkdown","knitr","kableExtra", \
-                     "flextable","officer"), \
-                   type = "binary"); \
+                     "flextable","officer")); \
   ' && rm -rf /tmp/downloaded_packages /tmp/Rtmp*
 
 # ---------- dsh CLI ----------
