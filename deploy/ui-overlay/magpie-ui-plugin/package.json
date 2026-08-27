@@ -1,0 +1,30 @@
+{
+  "name": "@magpie/meta-agent-ui",
+  "description": "MAGPIE Meta-Agent white-label UI overlay for the DeepSeek Harness Web client: brand slots (sidebar mark/name, hero mark), Dr.Magpie-inspired amber-gold theme, and cloud-workspace UX adjustments (local directory picker hidden, web upload/download affordances).",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/",
+    "assets/"
+  ],
+  "dsh": {
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ]
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

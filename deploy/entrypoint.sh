@@ -15,13 +15,33 @@ if [ -z "$DEEPSEEK_API_KEY" ]; then
 fi
 
 # dsh web 后台启动
-# TRUSTED_HOST: 允许外部网关 Host 通过 /api trust fence (如 magpieagent.online)
-# 不加则只有 localhost 能调 API (经网关远程访问会全 403)
-TRUSTED_ARGS=""
-for h in ${TRUSTED_HOST:-}; do
-  TRUSTED_ARGS="$TRUSTED_ARGS --trusted-host $h"
-done
-dsh web --no-open --port 3080 $TRUSTED_ARGS &
+# MAGPIE UI: seed/patch the web profile manifest so the white-label
+# bundle is part of dsh.profile.bundles (idempotent; no pnpm needed).
+MAGPIE_PKG="$DSH_HOME/profiles/web/package.json"
+mkdir -p "$(dirname "$MAGPIE_PKG")"
+if [ ! -f "$MAGPIE_PKG" ]; then
+  cat > "$MAGPIE_PKG" <<'JSON'
+{
+  "name": "dsh-profile-web",
+  "private": true,
+  "dependencies": {},
+  "dsh": {
+    "profile": {
+      "bundles": [
+        "@deepseek-ai/dsh-base",
+        "@deepseek-ai/dsh-web-app",
+        "@magpie/meta-agent-ui"
+      ]
+    }
+  }
+}
+JSON
+  echo "[entrypoint] web profile seeded (magpie ui included)"
+else
+  node -e 'const fs=require("fs");const p=process.argv[1];const j=JSON.parse(fs.readFileSync(p,"utf8"));j.dsh=j.dsh||{};j.dsh.profile=j.dsh.profile||{};const b=j.dsh.profile.bundles||[];if(!b.includes("@magpie/meta-agent-ui")){b.push("@magpie/meta-agent-ui");j.dsh.profile.bundles=b;fs.writeFileSync(p,JSON.stringify(j,null,2)+"\n");console.log("[entrypoint] magpie ui bundle added to web profile");}else{console.log("[entrypoint] magpie ui bundle present");}' "$MAGPIE_PKG"
+fi
+
+dsh web --no-open --port 3080 &
 DSH_PID=$!
 
 # 等待就绪

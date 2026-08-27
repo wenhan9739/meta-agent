@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#a2eefd;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#09a7fe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#064fab;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#c8faff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#09a7fe;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#09a7fe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#031e42;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="95" fill="url(#grad1)" opacity="0.08"/>
+  <circle cx="100" cy="100" r="80" fill="url(#grad1)" opacity="0.05"/>
+  
+  <!-- Main wing/blade shape - left segment (light cyan) -->
+  <path d="M60,130 C60,130 70,80 100,55 C110,48 125,45 130,50 C135,55 125,70 115,85 C105,100 95,120 90,135 C85,145 70,140 60,130 Z" 
+        fill="url(#grad2)" filter="url(#glow)" opacity="0.9"/>
+  
+  <!-- Middle segment (medium blue) -->
+  <path d="M75,125 C80,90 95,60 120,45 C130,40 145,42 148,50 C151,58 142,72 132,88 C122,104 110,125 105,140 C100,150 85,138 75,125 Z" 
+        fill="url(#grad1)" filter="url(#glow)" opacity="0.95"/>
+  
+  <!-- Right segment (dark navy) -->
+  <path d="M90,120 C98,85 115,55 145,42 C155,38 168,40 170,50 C172,60 162,75 150,92 C138,109 125,130 120,145 C115,155 100,135 90,120 Z" 
+        fill="url(#grad3)" filter="url(#glow)"/>
+  
+  <!-- Highlight line -->
+  <path d="M85,115 C90,85 108,58 135,46" 
+        stroke="white" stroke-width="1.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+  
+  <!-- Small accent dot -->
+  <circle cx="155" cy="55" r="3" fill="#c8faff" opacity="0.6"/>
+  <circle cx="165" cy="65" r="2" fill="#09a7fe" opacity="0.4"/>
+</svg>

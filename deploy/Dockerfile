@@ -40,6 +40,12 @@ RUN Rscript -e ' \
 # ---------- dsh CLI ----------
 RUN npm install -g @deepseek-ai/dsh@${DSH_VERSION}
 
+# ---------- MAGPIE UI overlay ----------
+COPY --chown=root:root ui-overlay/magpie-ui-plugin /opt/magpie-ui-plugin
+RUN cd "$(npm root -g)/@deepseek-ai/dsh" \
+ && npm install /opt/magpie-ui-plugin --save --save-exact --no-audit --no-fund --loglevel=error \
+ && npm cache clean --force 2>/dev/null || true
+
 # ---------- 非 root 运行用户 ----------
 RUN useradd -m -s /bin/bash metauser
 USER metauser

@@ -1,0 +1,36 @@
+# @magpie/meta-agent-ui — bundle patch layer.
+# Applied AFTER the dsh-base and dsh-web-app bundle layers (`dsh plugin add`
+# appends this package to dsh.profile.bundles, so these rows come last and
+# win by id).
+#
+# Row rules: a patch REPLACES the targeted row's whole config, and a bare
+# `disabled: true` entry only flips the row off without touching config.
+#
+#   1. Disable the official DeepSeek whale-brand plugin. Its three brand
+#      slots (sidebar.brand.mark/name, conversation.hero.brand.mark) then
+#      belong to this bundle's client.js alone — no shadowing election
+#      needed, and its FishLogo module dependency drops out of the graph.
+#
+#   2. Keep the directory-picker row as-is: on the cloud deployment the
+#      auto backend already resolves to `browse` (non-loopback bind), and
+#      the browser-side workspace entry points are hidden by the theme CSS
+#      in lib/client.js. Users interact through the composer's upload
+#      affordance; deliverables chips carry downloads.
+#
+# Theme colors and copy live in lib/client.js (pure browser-side facts).
+
+- id: ui-brand-official
+  disabled: true
+
+# 2. Insert this bundle's own loader entry. The client-modules scanner picks
+#    up client bundles from LIVE LOADER ENTRY NAMES (fiber names), so the
+#    package needs a row here — `name` is what both the loader and the
+#    client-module scanner key on. The entry's node half (lib/index.js) is a
+#    no-op; the browser half (lib/client.js) ships the presentation.
+#    NOTE: the package must also be require.resolve-able from the dsh
+#    installation tree (same resolution world as every in-box client
+#    package) — see deploy README / Dockerfile: the plugin is npm-installed
+#    INTO the dsh package at image build time.
+- insert:
+    - id: ui-brand-magpie
+      name: '@magpie/meta-agent-ui'
