@@ -1,6 +1,7 @@
-# MAGPIE UI 白标插件（@magpie/meta-agent-ui）
+# 证据科学探索者 UI 白标插件（@magpie/meta-agent-ui）
 
-在 DeepSeek Harness Web 客户端上实现 MAGPIE 品牌白标 + Dr.Magpie 风格主题 + 云端工作区 UX 调整。
+在 DeepSeek Harness Web 客户端上实现“证据科学探索者”品牌白标（蓝翼渐变 logo
++ “你好 · 证据科学探索者”）+ 品牌主题 + 云端工作区 UX 调整。
 **零 hack**：全部走 dsh 官方扩展机制（client bundle 插件 + bundle patch 层）。
 
 ## 文件结构
@@ -10,7 +11,7 @@ ui-overlay/magpie-ui-plugin/
 ├── package.json         # dsh.client 声明（platform: web）+ dsh.bundle.patch
 ├── lib/
 │   ├── index.js         # node 半（no-op，占位）
-│   └── client.js        # 浏览器半：品牌 slot 注册 + 主题注入 + hero 文案改写 + 工作区入口隐藏
+│   └── client.js        # 浏览器半：品牌 slot 注册 + 主题注入 + 启动页品牌覆盖 + hero 文案改写 + 输入框占位改写 + 工作区入口隐藏
 ├── cordis.patch.yml     # bundle patch 层：禁用 ui-brand-official + insert 本包 entry
 └── assets/              # logo.svg / favicon（当前仅存档，客户端内联 SVG 无需引用）
 ```
@@ -48,6 +49,8 @@ ui-overlay/magpie-ui-plugin/
 - entrypoint.sh：启动 dsh web 前，把 `@magpie/meta-agent-ui` 幂等加入
   `$DSH_HOME/profiles/web/package.json` 的 `dsh.profile.bundles`（用 node 写 JSON，
   不需要 pnpm；插件本体已在镜像里）。
+- `deploy/sync.sh --fast` 除了覆盖 `workspace/`，还会把本插件的 `lib/client.js` 与
+  `assets/*` 覆盖进镜像 `/opt/magpie-ui-plugin`（不重建 R/image 层）。
 
 ## 维护
 
