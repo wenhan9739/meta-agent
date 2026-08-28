@@ -44,16 +44,26 @@ DeepSeek 官方 API (服务端统一 Key, 统一计费)
 | `deploy/.env` | 仅服务器，`.gitignore` 忽略 | `DEEPSEEK_API_KEY`、`TRUSTED_HOST` |
 | `deploy/workspace/`、`deploy/*.tgz` | 运行时/构建产物，`.gitignore` 忽略 | 不提交、不同步 |
 
-### 同步方式
+### 发布与同步闭环（GitHub 唯一基准）
+
+```
+  本地(开发)         GitHub(唯一基准)         服务器(部署)
+  develop --push-->  origin/main(=v0.1)  --pull--> /opt/meta-agent
+  scripts/publish.sh                        deploy/sync.sh
+```
 
 ```sh
-# 服务器（一键拉齐 + 重建 + 重启，保持 git 干净）
-deploy/sync.sh            # 同步到 origin/main
-deploy/sync.sh v0.1       # 同步到某个稳定 tag
-deploy/sync.sh --fast     # 仅覆盖 workspace（薄层镜像，复用已装 R 包）
+# ① 本地：开发、提交后推送到 GitHub（唯一基准）
+scripts/publish.sh                 # 校验干净 → push main → push tag v0.1
+#   可加 --no-server；或 META_SYNC_HOST=root@host 让推送后自动触发服务器
 
-# 本地/发布端
-git pull origin main && git checkout v0.1
+# ② 服务器：从 GitHub 拉齐并重建/重启（保持 git 干净）
+cd /opt/meta-agent
+deploy/sync.sh --check             # 只报告漂移，不改动
+deploy/sync.sh                     # 同步到 origin/main（GitHub）
+deploy/sync.sh v0.1                # 同步到稳定 tag
+deploy/sync.sh --fast             # 仅覆盖 workspace（薄层镜像，复用已装 R 包）
+deploy/sync.sh --no-fetch --fast   # 离线 bundle 场景
 ```
 
 `sync.sh` 组合 `docker-compose.yml` + `docker-compose.prod.yml`：后者把网关挂载路径换成 `Caddyfile.prod`，该文件已被 `.gitignore` 忽略，因此服务器 git 工作区始终干净，与本地/GitHub 完全一致。

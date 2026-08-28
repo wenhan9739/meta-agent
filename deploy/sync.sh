@@ -11,6 +11,7 @@
 #   deploy/sync.sh --fast          # 仅覆盖 workspace（薄层镜像，复用已装 R 包，快）
 #   deploy/sync.sh --no-fetch      # 跳过 git fetch（适合已用 bundle/scp 提前同步 origin 的场景）
 #   deploy/sync.sh v0.1 --fast
+#   deploy/sync.sh --check         # 只报告本地与 origin/<ref> 的漂移，不改动
 # ============================================================
 set -euo pipefail
 
@@ -26,16 +27,18 @@ fi
 REF="main"
 FAST=0
 NO_FETCH=0
+CHECK=0
 for arg in "$@"; do
   case "$arg" in
     --fast) FAST=1 ;;
     --no-fetch) NO_FETCH=1 ;;
+    --check) CHECK=1 ;;
     *) REF="$arg" ;;
   esac
 done
 
 cd "${META_SYNC_ROOT:-$(dirname "$0")/..}"
-echo "==> [1/5] fetch & checkout origin/${REF}"
+echo "==> [1/5] fetch & checkout origin/${REF}  (GitHub 唯一基准)"
 if [ "$NO_FETCH" = "1" ]; then
   echo "  (skip fetch: --no-fetch)"
 else
@@ -44,6 +47,20 @@ else
   fi
 fi
 git rev-parse --verify "origin/${REF}" >/dev/null 2>&1 || { echo "error: 不存在 origin/${REF}，请先 fetch 或用 bundle 同步"; exit 1; }
+
+if [ "$CHECK" = "1" ]; then
+  echo "  origin/${REF} = $(git rev-parse "origin/${REF}")"
+  echo "  local HEAD   = $(git rev-parse HEAD)"
+  if git diff --quiet "origin/${REF}" && git diff --quiet --cached && git diff --quiet; then
+    echo "  [OK] 本地与 origin/${REF} 一致，工作区干净"
+  else
+    echo "  [DIFF] 本地与 origin/${REF} 不一致或工作区未提交："
+    git status --short
+    exit 2
+  fi
+  exit 0
+fi
+
 git reset --hard "origin/${REF}"
 
 echo "==> [2/5] refresh deploy/workspace"
