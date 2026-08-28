@@ -9,6 +9,7 @@
 #   deploy/sync.sh                 # 同步到 origin/main（当前管理版本）
 #   deploy/sync.sh v0.1            # 同步到指定 tag/commit
 #   deploy/sync.sh --fast          # 仅覆盖 workspace（薄层镜像，复用已装 R 包，快）
+#   deploy/sync.sh --no-fetch      # 跳过 git fetch（适合已用 bundle/scp 提前同步 origin 的场景）
 #   deploy/sync.sh v0.1 --fast
 # ============================================================
 set -euo pipefail
@@ -23,16 +24,25 @@ fi
 
 REF="main"
 FAST=0
+NO_FETCH=0
 for arg in "$@"; do
   case "$arg" in
     --fast) FAST=1 ;;
+    --no-fetch) NO_FETCH=1 ;;
     *) REF="$arg" ;;
   esac
 done
 
 cd "$(dirname "$0")/.."
 echo "==> [1/5] fetch & checkout origin/${REF}"
-git fetch origin --tags --prune
+if [ "$NO_FETCH" = "1" ]; then
+  echo "  (skip fetch: --no-fetch)"
+else
+  if ! git fetch origin --tags --prune; then
+    echo "  [warn] fetch 失败（网络/代理？）——若本地 origin/${REF} 已通过 bundle/scp 同步则继续"
+  fi
+fi
+git rev-parse --verify "origin/${REF}" >/dev/null 2>&1 || { echo "error: 不存在 origin/${REF}，请先 fetch 或用 bundle 同步"; exit 1; }
 git reset --hard "origin/${REF}"
 
 echo "==> [2/5] refresh deploy/workspace"
