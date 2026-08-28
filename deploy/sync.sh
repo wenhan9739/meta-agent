@@ -79,6 +79,13 @@ if [ "$FAST" = "1" ]; then
   cat > Dockerfile.overlay <<'EOF'
 FROM meta-agent:latest
 COPY --chown=metauser:metauser workspace/ /home/metauser/agent/
+# Refresh the MAGPIE/Evidence-Explorer white-label UI plugin (client bundle +
+# brand assets) without rebuilding the R/image layers. The plugin is symlinked
+# into the dsh install tree from /opt/magpie-ui-plugin, so overwriting the
+# source files is enough; dsh recomputes the client rev on next boot.
+COPY --chown=root:root ui-overlay/magpie-ui-plugin/lib/client.js /opt/magpie-ui-plugin/lib/client.js
+COPY --chown=root:root ui-overlay/magpie-ui-plugin/assets/logo.svg /opt/magpie-ui-plugin/assets/logo.svg
+COPY --chown=root:root ui-overlay/magpie-ui-plugin/assets/favicon-32.png /opt/magpie-ui-plugin/assets/favicon-32.png
 EOF
   docker build -t meta-agent:current -f Dockerfile.overlay .
   docker tag meta-agent:current meta-agent:latest
