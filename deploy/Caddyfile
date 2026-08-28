@@ -18,7 +18,13 @@ magpieagent.online, www.magpieagent.online {
     @static path /assets/* /plugins/* /manifest.webmanifest /favicon.svg
     handle @static {
         encode gzip zstd
-        header Cache-Control "public, max-age=31536000, immutable"
+        # Caddy's deferred response headers apply in set->delete order; deleting a
+        # harmless header (ETag) makes the handler deferred so our Cache-Control
+        # runs AFTER the proxy, overriding dsh's upstream "no-cache".
+        header {
+            -ETag
+            Cache-Control "public, max-age=31536000, immutable"
+        }
         reverse_proxy agent-alice:8080
     }
     handle {

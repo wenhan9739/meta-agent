@@ -14,7 +14,13 @@ meta.example.com, www.meta.example.com {
     @static path /assets/* /plugins/* /manifest.webmanifest /favicon.svg
     handle @static {
         encode gzip zstd
-        header Cache-Control "public, max-age=31536000, immutable"
+        # Caddy deferred response headers run set->delete; delete a harmless
+        # header (ETag) to make the handler deferred so our Cache-Control runs
+        # AFTER the proxy and overrides dsh's upstream "no-cache".
+        header {
+            -ETag
+            Cache-Control "public, max-age=31536000, immutable"
+        }
         reverse_proxy agent-alice:8080
     }
     handle {
