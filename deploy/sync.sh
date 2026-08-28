@@ -16,10 +16,11 @@ set -euo pipefail
 
 # 自更新安全：把本脚本复制到 /tmp 再执行，避免 git reset 覆盖正在运行的脚本本身。
 if [ "${META_SYNC_RUN:-}" != "1" ]; then
+  ROOT="$(cd "$(dirname "$0")/.." && pwd)"
   COPY="$(mktemp /tmp/meta-sync.XXXXXX.sh)"
   cp "$0" "$COPY"
   chmod +x "$COPY"
-  exec env META_SYNC_RUN=1 bash "$COPY" "$@"
+  exec env META_SYNC_RUN=1 META_SYNC_ROOT="$ROOT" bash "$COPY" "$@"
 fi
 
 REF="main"
@@ -33,7 +34,7 @@ for arg in "$@"; do
   esac
 done
 
-cd "$(dirname "$0")/.."
+cd "${META_SYNC_ROOT:-$(dirname "$0")/..}"
 echo "==> [1/5] fetch & checkout origin/${REF}"
 if [ "$NO_FETCH" = "1" ]; then
   echo "  (skip fetch: --no-fetch)"
