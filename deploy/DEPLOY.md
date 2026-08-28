@@ -137,6 +137,7 @@ deploy/sync.sh --no-fetch --fast   # 离线 bundle 场景
 | 用量审计 | 容器日志 `docker compose logs agent-alice`；正式计费建议接 DeepSeek 用量后台对账 |
 | 限流 | Caddy `rate_limit` 插件或网关层加；防单用户刷爆 Key |
 | 安全更新 | `docker compose build --pull && docker compose up -d`（每月）|
+| 首屏性能 | Caddy 已对 `/assets/*`、`/plugins/*` 开启 `gzip/zstd` + `immutable` 长缓存；改 Caddy 后只需 `docker restart deploy-gateway-1`，**无需重建 agent/R 层**（避免 4G 服务器 OOM）|
 
 ## 商业化合规清单（上线前自查）
 

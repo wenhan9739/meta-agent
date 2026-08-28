@@ -1,14 +1,26 @@
 # 生产网关 Caddyfile 模板（把本文件复制为 Caddyfile.prod 并填入真实值；Caddyfile.prod 已被 .gitignore 忽略）。
 # 每个用户一行 basic_auth；Caddyfile.prod 与域名/密码哈希一样都属于部署私密配置，不得提交。
+# 性能优化: 仅对静态资产 (/assets/*, /plugins/*) 开启 gzip/zstd 压缩与 immutable 长缓存
+#   - /assets/* 与 /plugins/* 的 URL 含内容哈希 (rev/文件名), 可安全 1 年强缓存
+#   - API/SSE 走默认 handle, 保持 flush_interval(-1) 流式输出, 不做压缩以免影响长连接
 meta.example.com, www.meta.example.com {
     basic_auth {
         alice $2a$14$REPLACE_WITH_caddy_hash_PASSWORD
     }
-    reverse_proxy agent-alice:8080 {
-        flush_interval -1
-    }
     header {
         X-Content-Type-Options nosniff
+    }
+
+    @static path /assets/* /plugins/* /manifest.webmanifest /favicon.svg
+    handle @static {
+        encode gzip zstd
+        header Cache-Control "public, max-age=31536000, immutable"
+        reverse_proxy agent-alice:8080
+    }
+    handle {
+        reverse_proxy agent-alice:8080 {
+            flush_interval -1
+        }
     }
 }
 
