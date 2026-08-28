@@ -18,6 +18,22 @@ def norm_doi(d):
     d = (d or "").strip().lower()
     return d[4:] if d.startswith("https://doi.org/") else d
 
+def human_db_name(file_stem):
+    """把文件名残片映射为可读的数据库名，供 source_db 与 PRISMA 计数表使用。
+    例: all_records -> PubMed, central_records -> CENTRAL, embase_records -> Embase。
+    若记录自带 source_db（如 CENTRAL 记录已写入 source_db 列），则以记录值为准。"""
+    mapping = {
+        "all_records": "PubMed",
+        "central_records": "CENTRAL",
+        "embase_records": "Embase",
+        "scopus_records": "Scopus",
+        "wos_records": "Web of Science",
+        "cinahl_records": "CINAHL",
+        "webofscience_records": "Web of Science",
+    }
+    key = file_stem.replace("_records", "")
+    return mapping.get(file_stem, key if key else file_stem)
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--inputs", nargs="+", required=True)
@@ -27,13 +43,15 @@ def main():
 
     rows, per_db = [], {}
     for path in a.inputs:
-        db = os.path.splitext(os.path.basename(path))[0].replace("_records","")
+        stem = os.path.splitext(os.path.basename(path))[0]
+        db = stem.replace("_records","")
+        label = human_db_name(stem)
         with open(path, encoding="utf-8-sig") as f:
             for r in csv.DictReader(f):
-                r.setdefault("source_db", db)
+                r.setdefault("source_db", label)
                 r["_db_file"] = db
                 rows.append(r)
-                per_db[db] = per_db.get(db, 0) + 1
+                per_db[label] = per_db.get(label, 0) + 1
     print(f"合计读入 {len(rows)} 条: {per_db}")
 
     seen_doi, seen_pmid, seen_title = {}, {}, {}
@@ -55,7 +73,7 @@ def main():
 
     # 统一列名输出
     def pick(r):
-        return {
+        out = {
             "pmid": r.get("pmid", r.get("PMID","")),
             "doi": r.get("doi", r.get("DOI","")),
             "title": r.get("title", r.get("Title","")),
@@ -66,9 +84,14 @@ def main():
             "pubtype": r.get("pubtype",""),
             "source_db": r.get("source_db", r.get("_db_file","")),
             "local_pdf": "",
+            "central_id": r.get("central_id", ""),
+            "source": r.get("source", ""),
+            "url": r.get("url", ""),
         }
+        return out
+    pick_fields = list(pick(uniq[0]).keys()) if uniq else ["pmid"]
     with open(f"{a.out_dir}/unique_records.csv","w",newline="",encoding="utf-8-sig") as f:
-        w = csv.DictWriter(f, fieldnames=list(pick(uniq[0]).keys()) if uniq else ["pmid"]); w.writeheader()
+        w = csv.DictWriter(f, fieldnames=pick_fields); w.writeheader()
         for r in uniq: w.writerow(pick(r))
     with open(f"{a.out_dir}/duplicates.csv","w",newline="",encoding="utf-8-sig") as f:
         w = csv.DictWriter(f, fieldnames=["source_db","pmid","doi","title","_reason"]); w.writeheader()

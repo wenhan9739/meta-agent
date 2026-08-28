@@ -2,6 +2,8 @@
 
 **基于 DeepSeek Harness 的端到端系统综述 / Meta 分析垂直智能体**
 
+> **版本 `v0.1`**（统一本地 / GitHub / 服务器三端实现；含 CENTRAL 检索、PRISMA 流程图模板、跨库去重增强）
+
 从选题到投稿，用户在 Web UI 中用自然语言下达指令，Meta-Agent 自动完成系统综述全流程：选题评估 → PROSPERO protocol → 文献检索 → 双人筛选 → 数据提取 → R 统计分析 → 发表级可视化 → 全文撰稿 → 选刊与投稿件。
 
 > ⚠️ **预览声明**：本项目基于 DeepSeek Harness (developer preview) 构建，AI 生成的分析结果与文稿需研究者自行核实后方可用于学术用途。本工具不构成医疗建议。
@@ -15,7 +17,7 @@
   - PRISMA 2020 全程对齐（检索式存档、排除原因逐篇记录、流程图数字闭环校验）
   - 双人独立筛选/提取模拟（Reviewer A 宽容倾向 vs Reviewer B 严格倾向 + 用户裁决）
   - GRADE 证据分级、发表偏倚检验（k≥10 才做正式检验）、预测区间必报
-- **真实可用的检索管线**：NCBI E-utilities 一体化脚本（限速合规、断点重试、MEDLINE→CSV 自动解析）、跨库去重（DOI→PMID→标题归一化三级规则）
+- **真实可用的检索管线**：NCBI E-utilities 一体化 PubMed 检索（限速合规、断点重试、MEDLINE→CSV 自动解析）、CENTRAL (Cochrane) Playwright 自动检索、跨库去重（DOI→PMID→标题归一化三级规则）
 - **R 统计全家桶**：metafor 体系 7 个开箱即用脚本——主分析/亚组回归/敏感性+偏倚/森林图/网状 meta/剂量-反应/文档导出
 - **发表级输出**：300dpi 森林图（合并菱形与预测区间分离排版）、Word/Excel 兜底导出（无 pandoc 环境）
 - **商业化就绪的部署包**：Docker 镜像 + Caddy 网关 + 每用户一容器隔离 + 统一 API Key 计费架构
@@ -112,10 +114,12 @@ meta-agent/
 │   │   └── 07_export_docs.R          Word/Excel 兜底导出
 │   ├── scripts/
 │   │   ├── pubmed_search.py      E-utilities 一体化检索
+│   │   ├── central_search.py     CENTRAL (Cochrane) Playwright 检索
 │   │   └── dedup_records.py      跨库去重 (DOI→PMID→标题)
 │   ├── extraction_template.csv   数据提取表 (双人提取用)
 │   ├── data_dictionary.csv       提取字典 (换算公式留痕)
 │   ├── prisma_counts.md          PRISMA 计数闭环表
+│   ├── prisma_flowchart.md       PRISMA 2020 流程图模板 (Mermaid)
 │   ├── protocol_template.md      PROSPERO 对齐 protocol
 │   ├── cover_letter_template.md  Cover letter
 │   └── PROJECT_board_template.md 项目状态看板
@@ -150,11 +154,17 @@ meta-agent/
 
 ## 🗺️ Roadmap
 
-- [ ] OIDC 认证替换 Basic Auth（注册/付费墙）
-- [ ] token 级用量计量与对账（对接 DeepSeek 用量 API）
-- [ ] 全文自动获取增强（OA 优先级策略、机构代理桥接）
-- [ ] 引文滚动雪球检索自动化（Web of Science API）
-- [ ] Web UI 内嵌 PRISMA 流程图交互式编辑
+**近期优先级（ranked）**
+1. OIDC 认证替换 Basic Auth（注册/付费墙）— 商业化上线前置
+2. token 级用量计量与对账（对接 DeepSeek 用量 API）— 计费闭环
+3. 全文自动获取增强（OA 优先级策略、机构代理桥接）— 扩展检索管线召回
+4. 引文滚动雪球检索自动化（Web of Science API）— 补检索完整性
+5. Web UI 内嵌 PRISMA 流程图交互式编辑 — 投稿体验
+
+**本阶段已落地**
+- CENTRAL (Cochrane) Playwright 自动检索脚本，与 PubMed 记录 schema 对齐，可并入跨库去重
+- `templates/prisma_flowchart.md`（PRISMA 2020 流程图模板，Mermaid），补齐 meta-write 引用链
+- `dedup_records.py` 支持数据库可读命名（PubMed/CENTRAL/Embase）与 CENTRAL 字段透传
 
 ## 🤝 贡献
 

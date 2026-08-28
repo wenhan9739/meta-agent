@@ -20,7 +20,7 @@ whenToUse: protocol确认后需要检索文献时；或用户要求修改/补充
   - 方法学层：`(meta-analysis[pt] NOT meta-analysis[pt] AND review[pt])` 不适用——这里是找**原始研究**，用研究类型过滤器（RCT: `randomized controlled trial[pt]` 或敏感性更高的 Cochrane RCT filter；队列: `cohort[tiab] OR follow-up[tiab]`）
   - 三层 AND 连接；限制时间与语言放最后（`AND 2015:2026[dp]`）
 - **Embase**（Elsevier 语法）：给出 Emtree 词 + `(exp)` 扩展的完整检索式，用户手工执行
-- **Cochrane Library**：给出 MeSH/Emtree + free text 的检索行编号式检索策略
+- **Cochrane Library (CENTRAL)**：给出 MeSH/Emtree + free text 的 CENTRAL 检索式；优先用自动化脚本（见 2c）抓取，脚本不可用时给出检索行编号式手工检索策略
 - 每条检索式标注：执行日期、命中数
 
 ### 2. 自动执行 PubMed 检索（优先用工具脚本）
@@ -42,10 +42,25 @@ curl -s "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=
 ### 2b. 跨库去重（检索完成后必须执行）
 ```sh
 python templates/scripts/dedup_records.py \
-  --inputs 10-search/all_records.csv 10-search/embase_records.csv \
+  --inputs 10-search/all_records.csv 10-search/central_records.csv 10-search/embase_records.csv \
   --out-dir 10-search
 ```
 规则：DOI 归一 → PMID → 标题归一化；产出 `unique_records.csv`、`duplicates.csv`、`dedup_log.md`（含 PRISMA 计数表）。
+
+### 2c. CENTRAL (Cochrane Library) 自动检索
+> 需要本机 Playwright + 系统 Edge/Chrome（住宅 IP 过 Cloudflare/Turnstile）。云端容器无桌面浏览器，改用给用户的手工检索式。
+```sh
+pip install playwright     # 仅首次
+# 直接给检索式（注意 PowerShell 转义，建议用 --query-file）
+python templates/scripts/central_search.py \
+  --query 'copd AND "inhaled corticosteroid"' \
+  --pages 3 --out-dir projects/<slug>/10-search
+python templates/scripts/central_search.py --query-file 10-search/query_central.txt \
+  --pages 3 --out-dir projects/<slug>/10-search
+```
+- 产物 `central_records.csv` 列已与 PubMed 对齐（`pmid/doi/title/.../source_db/source/central_id/url`），可直接并入去重 `--inputs`
+- Cloudflare 拦截时先试 `--headful`（真实桌面浏览器过 Turnstile 成功率最高）；失败则给出手工检索式让用户执行
+- CENTRAL 是注册试验索引，纳入仍需回溯原文（与单独检索的注册库/PubMed 记录视作同一研究，交由去重处理）
 
 ### 5. 本地 PDF 匹配（如有本地库）
 - 把 unique_records 的 PMID 与本地库文件名（`<PMID>.pdf`）匹配，命中列 `local_pdf=yes`
