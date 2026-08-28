@@ -1,0 +1,10 @@
+# 生产覆盖层：把网关 Caddyfile 换成服务器专属的 Caddyfile.prod（在 .gitignore 中，不入库）。
+# 用法（在 deploy/ 目录）：
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# 配合 deploy/sync.sh 使用；普通开发/冒烟无需此文件。
+services:
+  gateway:
+    volumes:
+      - ./Caddyfile.prod:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config

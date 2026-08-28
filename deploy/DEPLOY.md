@@ -25,6 +25,45 @@ DeepSeek 官方 API (服务端统一 Key, 统一计费)
 | 服务端统一注入 DEEPSEEK_API_KEY | 商业计费可控；客户无需自备 Key；用量可按容器日志审计 |
 | 项目产出 volume 持久化 | 用户数据（projects/）独立卷，备份/导出/销毁清晰 |
 
+
+
+## 版本与三端同步（v0.1）
+
+### 唯一事实源
+
+- **GitHub `origin/main`** 是唯一事实源；Git 标签 `v0.1` 是发布基线。
+- **本地开发机** = `origin/main` 的克隆/镜像（`D:\work\meta agent`）。
+- **服务器** = `origin/main` 的克隆 + 部署私有配置（不入库）。
+
+### 仓库 vs 部署私有配置边界
+
+| 内容 | 归宿 | 说明 |
+|---|---|---|
+| AGENTS.md / `.dsh/skills` / `templates` / `deploy/` 源码 / `VERSION` | Git 仓库，三端一致 | 一切实现 |
+| `deploy/Caddyfile.prod` | 仅服务器，`.gitignore` 忽略 | 真实域名 + 每用户 Basic Auth 密码哈希 |
+| `deploy/.env` | 仅服务器，`.gitignore` 忽略 | `DEEPSEEK_API_KEY`、`TRUSTED_HOST` |
+| `deploy/workspace/`、`deploy/*.tgz` | 运行时/构建产物，`.gitignore` 忽略 | 不提交、不同步 |
+
+### 同步方式
+
+```sh
+# 服务器（一键拉齐 + 重建 + 重启，保持 git 干净）
+deploy/sync.sh            # 同步到 origin/main
+deploy/sync.sh v0.1       # 同步到某个稳定 tag
+deploy/sync.sh --fast     # 仅覆盖 workspace（薄层镜像，复用已装 R 包）
+
+# 本地/发布端
+git pull origin main && git checkout v0.1
+```
+
+`sync.sh` 组合 `docker-compose.yml` + `docker-compose.prod.yml`：后者把网关挂载路径换成 `Caddyfile.prod`，该文件已被 `.gitignore` 忽略，因此服务器 git 工作区始终干净，与本地/GitHub 完全一致。
+
+### 演进纪律
+
+- 三端**实现**（Git 树）必须逐字节一致；`VERSION` 文件是版本锚点。
+- 新增用户：改 `Caddyfile.prod` + `docker-compose.yml` 复制 agent 服务块 + 重跑 `sync.sh`。
+- 升级依赖/改 Dockerfile：用 `deploy/sync.sh`（全量 `--build`；R 包层缓存 miss 会重新安装，耗时较长）。
+
 ## 快速开始（单机，1 个域名）
 
 ### 前置

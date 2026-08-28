@@ -13,6 +13,13 @@ projects/*
 .dsh/profiles/
 .dsh/storages/
 
+# 部署构建/运行时产物 — 不入库（每个环境自行生成）
+deploy/workspace/
+deploy/*.tgz
+deploy/*.tar.gz
+deploy/Caddyfile.prod
+deploy/docker-compose.override.yml
+
 # 杂项
 manuscript.docx
 deepseek-harness.del/

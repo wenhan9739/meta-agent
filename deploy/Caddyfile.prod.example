@@ -1,0 +1,17 @@
+# 生产网关 Caddyfile 模板（把本文件复制为 Caddyfile.prod 并填入真实值；Caddyfile.prod 已被 .gitignore 忽略）。
+# 每个用户一行 basic_auth；Caddyfile.prod 与域名/密码哈希一样都属于部署私密配置，不得提交。
+meta.example.com, www.meta.example.com {
+    basic_auth {
+        alice $2a$14$REPLACE_WITH_caddy_hash_PASSWORD
+    }
+    reverse_proxy agent-alice:8080 {
+        flush_interval -1
+    }
+    header {
+        X-Content-Type-Options nosniff
+    }
+}
+
+http://meta.example.com, http://www.meta.example.com {
+    redir https://{host}{uri} permanent
+}

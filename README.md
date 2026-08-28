@@ -142,7 +142,7 @@ meta-agent/
 - dsh 的 trust fence 不是认证层 → 认证由网关承担
 - settings/credentials 特权 API 钉死 loopback → 经网关的用户无法读取服务端计费 Key
 
-详见 [deploy/DEPLOY.md](deploy/DEPLOY.md)。
+> **三端同步**：GitHub = 唯一事实源，本地与服务器均为其镜像；服务器私有配置（`deploy/Caddyfile.prod`、`.env`）被 `.gitignore` 隔离。服务器用 `deploy/sync.sh` 一键拉齐到 `v0.1`。详见 [deploy/DEPLOY.md](deploy/DEPLOY.md)。
 
 ## 🔒 设计红线（质量承诺）
 
